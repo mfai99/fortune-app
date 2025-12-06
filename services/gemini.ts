@@ -150,33 +150,23 @@ export async function generateYearlyFortune(name: string, birthInfo: string, lan
 }
 
 export async function generateTarotReading(cards: string[], language: string): Promise<string> {
-  const langName = language === 'en' ? 'English' : 'Traditional Chinese';
-  const prompt = `Tarot reading: ${cards.join(', ')}. Lang: ${langName}.`;
+  const prompt = `Tarot reading: ${cards.join(', ')}. Lang: ${language}.`;
   return await callDeepSeek(prompt);
  }
 
 export async function generateMicroContent(itemId: string, userInput: string, language: string): Promise<string> {
-    const langName = language === 'en' ? 'English' : 'Traditional Chinese';
     let promptTemplate = MICRO_ITEM_PROMPTS[itemId] || "Generate a blessing.";
-    let prompt = promptTemplate.replace('{{lang}}', langName).replace('{{input}}', userInput || 'General');
+    let prompt = promptTemplate.replace('{{lang}}', language).replace('{{input}}', userInput || 'General');
     return await callDeepSeek(prompt);
 }
 
 export async function generateSupportResponse(query: string, language: string): Promise<string> {
-    const langName = language === 'en' ? 'English' : 'Traditional Chinese';
-    const prompt = `Support: ${query}. Lang: ${langName}.`;
+    const prompt = `Support: ${query}. Lang: ${language}.`;
     return await callDeepSeek(prompt);
 }
 
 export async function generateSageResponse(message: string, deityId: string, language: string, history: string[]): Promise<string> {
-    const langName = language === 'en' ? 'English' : 'Traditional Chinese';
-    let persona = "Sage";
-    if (deityId === 'landgod') persona = "Tu Di Gong";
-    if (deityId === 'wealth') persona = "Cai Shen";
-    if (deityId === 'matchmaker') persona = "Yue Lao";
-    if (deityId === 'mazu') persona = "Mazu";
-    
-    const prompt = `Roleplay as ${persona}. Language: ${langName}. History: ${history.slice(-2)}. User: ${message}`;
+    const prompt = `Roleplay deity ${deityId}. Msg: ${message}. Lang: ${language}.`;
     return await callDeepSeek(prompt);
 }
 
@@ -219,13 +209,11 @@ export async function generateBlessingImage(subject: string, isGolden: boolean =
             if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
         }
         
-        // FALLBACK IF API BLOCKED (Safety)
-        console.warn("API Blocked content, returning Stock Image");
+        // FALLBACK
         return isGolden ? STOCK_IMAGES.gold : STOCK_IMAGES.default;
 
     } catch (error) {
-        console.error("Image Gen Failed, using fallback", error);
-        // FALLBACK IF NETWORK ERROR
+        console.error("Image Gen Failed", error);
         return isGolden ? STOCK_IMAGES.gold : STOCK_IMAGES.default;
     }
 }
