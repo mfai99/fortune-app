@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, Star, Loader2, Download, Coins, AlertCircle, CheckCircle, Dice5, X } from 'lucide-react';
 import { LanguageCode, UserProfile, GalleryItem } from '../types';
-import { t, STRIPE_PRICES } from '../constants';
+import { t } from '../constants';
 import { Card, BigButton, PaymentLogos } from './Common';
 import { generateBlessingImage, getRandomDeity } from '../services/gemini';
-import { initiateCheckout } from '../services/stripe';
 
 interface Props {
   language: LanguageCode;
@@ -54,27 +53,21 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
     
     // --- GACHA LOGIC ---
     let isGolden = false;
-    // Use pity from PROPS not local const to ensure latest
     const pity = user?.pityCount || 0;
     const chance = probabilities[Math.min(pity, 4)];
     const roll = Math.random();
     
-    console.log(`GACHA: Pity=${pity}, Chance=${chance}, Roll=${roll}`);
-
     if (roll < chance) {
-        console.log(">>> GOLDEN TRIGGERED!");
         isGolden = true;
         setIsGoldenResult(true);
         updatePityCount(0); // Reset
     } else {
-        console.log(">>> Normal Result");
         updatePityCount(pity + 1); // Increment
     }
     
     addTransaction(cost, 'spend', `Generated Image ${isGolden ? '(GOLDEN)' : ''}: ${subject}`);
 
     try {
-        // Pass isGolden to service
         const url = await generateBlessingImage(subject, isGolden);
         
         if (url) {
@@ -98,24 +91,18 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
     }
   };
 
-  const buyCredits = async (amount: number, index: number) => {
-      if (isBuying) return;
-      setIsBuying(true);
-      setBuyingPackIndex(index);
-      
-      // Determine Price ID and Redirect
-      let priceId = STRIPE_PRICES?.coin_pack_1; 
-      if (index === 1) priceId = STRIPE_PRICES?.coin_pack_2;
-      if (index === 2) priceId = STRIPE_PRICES?.coin_pack_3;
-
-      if (priceId) {
-         await initiateCheckout(priceId);
+  const buyCredits = (amount: number, index: number) => {
+      const links = [
+          "https://buy.stripe.com/7sYfZjd2Z4lO3b487R9ws07", 
+          "https://buy.stripe.com/eVq28tgfb3hKcLE3RB9ws08", 
+          "https://buy.stripe.com/7sY8wRe732dG8vobk39ws09"
+      ];
+      const link = links[index];
+      if (link) {
+          window.open(link, '_blank');
       } else {
-         alert("Payment link not found. Please try again later.");
+          alert("Link not found");
       }
-      
-      setIsBuying(false);
-      setBuyingPackIndex(null);
   };
 
   return (
@@ -158,7 +145,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
                   <span className="text-4xl font-black">{credits}</span>
               </div>
                
-               {/* DEBUG: PITY COUNTER VISUAL */}
+               {/* PITY COUNTER VISUAL */}
               <div className="mt-4 w-full max-w-[200px] bg-black/50 p-2 rounded-lg border border-gray-700">
                   <div className="flex justify-between text-xs text-gray-300 mb-1">
                       <span>Golden Chance:</span>
@@ -172,11 +159,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
                         style={{ width: `${(currentPity / 5) * 100}%` }} 
                       ></div>
                   </div>
-                  <p className="text-[10px] text-gray-500 mt-1 text-center">
-                      Generate {5 - currentPity} more for Guarantee
-                  </p>
               </div>
-
           </div>
           <button onClick={() => window.scrollTo({ top: 1000, behavior: 'smooth' })} className="bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 px-6 rounded-full shadow-lg transition">
               {t(language, 'ai_buy_credits')}
