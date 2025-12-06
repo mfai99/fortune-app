@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fortune Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* --- Custom Animations --- */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      @keyframes shake {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-10deg); }
+        75% { transform: rotate(10deg); }
+      }
+      @keyframes flash {
+        0% { opacity: 0; }
+        50% { opacity: 1; background-color: white; }
+        100% { opacity: 1; background-color: transparent; }
+      }
+      @keyframes elastic-pop {
+        0% { transform: scale(0); }
+        70% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      @keyframes stamp {
+        0% { transform: scale(2); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+      .animate-scaleIn { animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+      .animate-shake { animation: shake 0.5s ease-in-out infinite; }
+      .animate-flash { animation: flash 0.5s ease-out; }
+      .animate-elastic-pop { animation: elastic-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+      .animate-stamp { animation: stamp 0.3s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards; }
+      .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+      .perspective-1000 { perspective: 1000px; }
+      .transform-style-3d { transform-style: preserve-3d; }
+      .backface-hidden { backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "stripe": "https://aistudiocdn.com/stripe@^20.0.0",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.39.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
