@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, Star, Loader2, Download, Coins, AlertCircle, CheckCircle, Dice5, X } from 'lucide-react';
 import { LanguageCode, UserProfile, GalleryItem } from '../types';
-import { t } from '../constants'; // Removed STRIPE_PRICES
+import { t, STRIPE_PRICES } from '../constants';
 import { Card, BigButton, PaymentLogos } from './Common';
 import { generateBlessingImage, getRandomDeity } from '../services/gemini';
-// Removed initiateCheckout
+import { initiateCheckout } from '../services/stripe';
 
 interface Props {
   language: LanguageCode;
@@ -23,6 +23,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
   const [showSuccess, setShowSuccess] = useState<string | null>(null);
   const [showApology, setShowApology] = useState(false);
   
+  // Golden Edition State
   const [isGoldenResult, setIsGoldenResult] = useState(false);
 
   const credits = user?.coins || 0;
@@ -97,18 +98,24 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
     }
   };
 
-  const buyCredits = (amount: number, index: number) => {
-      const links = [
-          "https://buy.stripe.com/7sYfZjd2Z4lO3b487R9ws07", 
-          "https://buy.stripe.com/eVq28tgfb3hKcLE3RB9ws08", 
-          "https://buy.stripe.com/7sY8wRe732dG8vobk39ws09"
-      ];
-      const link = links[index];
-      if (link) {
-          window.open(link, '_blank');
+  const buyCredits = async (amount: number, index: number) => {
+      if (isBuying) return;
+      setIsBuying(true);
+      setBuyingPackIndex(index);
+      
+      // Determine Price ID and Redirect
+      let priceId = STRIPE_PRICES?.coin_pack_1; 
+      if (index === 1) priceId = STRIPE_PRICES?.coin_pack_2;
+      if (index === 2) priceId = STRIPE_PRICES?.coin_pack_3;
+
+      if (priceId) {
+         await initiateCheckout(priceId);
       } else {
-          alert("Link not found");
+         alert("Payment link not found. Please try again later.");
       }
+      
+      setIsBuying(false);
+      setBuyingPackIndex(null);
   };
 
   return (
