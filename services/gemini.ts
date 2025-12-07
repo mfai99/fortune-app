@@ -2,7 +2,7 @@ import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIGURATION ---
 const USE_BACKEND_PROXY = false; 
-const FALLBACK_KEY = "AIzaSyD6DI7fiQGBbFJjYhhWk0x62o-gJd9uqsc"; 
+const FALLBACK_KEY = "AIzaSyBC1Y5EeQZGdxU2L9sBbSew6nZQRpqNL0c"; 
 const API_KEY = process.env.API_KEY || FALLBACK_KEY;
 const DEEPSEEK_KEY = "sk-9e41f40056714897b6d6e403c0c2cfae"; 
 
