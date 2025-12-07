@@ -24,14 +24,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, on
       onCheckIn();
   };
 
+  // GENERIC WELCOME MESSAGE
   const getWelcomeMessage = () => {
-      const name = user?.name || (language === 'en' ? 'Guest' : '訪客');
       switch(language) {
-          case 'zh_TW': return `尊敬的 ${name} 用戶，歡迎回來`;
-          case 'zh_CN': return `尊敬的 ${name} 用户，欢迎回来`;
-          default: return `Welcome back, ${name}`;
+          case 'zh_TW': return "尊敬的用戶，歡迎回來";
+          case 'zh_CN': return "尊敬的用户，欢迎回来";
+          default: return "Respected User, Welcome Back";
       }
   };
+
+  // SHORT ID LOGIC
+  const rawId = user ? user.id : USER_ID;
+  const displayId = rawId.length >= 8 
+    ? `${rawId.substring(0, 4).toUpperCase()}-${rawId.substring(4, 8).toUpperCase()}` 
+    : rawId;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -74,7 +80,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, on
       
       <Card title={getWelcomeMessage()} className="bg-gray-50 border-pink-500">
         <p className="mt-2 text-base font-mono text-gray-600 break-all">
-            {t(language, 'userID')}: <span className="font-bold text-pink-600">{user?.name || USER_ID}</span>
+            {t(language, 'userID')}: <span className="font-bold text-pink-600">{displayId}</span>
         </p>
       </Card>
 
