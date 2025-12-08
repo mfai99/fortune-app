@@ -2,7 +2,7 @@ import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIGURATION ---
 const USE_BACKEND_PROXY = false; 
-const FALLBACK_KEY = "AIzaSyBC1Y5EeQZGdxU2L9sBbSew6nZQRpqNL0c"; 
+const FALLBACK_KEY = "AIzaSyD6DI7fiQGBbFJjYhhWk0x62o-gJd9uqsc"; 
 const API_KEY = process.env.API_KEY || FALLBACK_KEY;
 const DEEPSEEK_KEY = "sk-9e41f40056714897b6d6e403c0c2cfae"; 
 
@@ -20,18 +20,7 @@ export const DEITY_SYMBOLS: Record<string, string> = {
     '媽祖': 'Sea Guardian Goddess, wearing ornate Red Robe and Phoenix Crown, cute chibi style',
     'guanyin': 'White-robed Goddess of Mercy, holding a willow branch, standing on a lotus, cute chibi style',
     '觀音': 'White-robed Goddess of Mercy, holding a willow branch, standing on a lotus, cute chibi style',
-    'landgod': 'Earth Grandfather, holding a wooden staff and gold ingot, long white beard, friendly old man',
-    '土地公': 'Earth Grandfather, holding a wooden staff and gold ingot, long white beard, friendly old man',
-    'guangong': 'General of Justice, Red Face, Long Black Beard, wearing Green Robe, holding a blade staff, majestic',
-    '關公': 'General of Justice, Red Face, Long Black Beard, wearing Green Robe, holding a blade staff, majestic',
-    'caishen': 'God of Wealth, wearing festive red official robes, holding a giant gold ingot, joyful smile',
-    '財神': 'God of Wealth, wearing festive red official robes, holding a giant gold ingot, joyful smile',
-    'tigergod': 'Cute Golden Tiger Spirit, guardian entity, biting a gold coin, round eyes',
-    '虎爺': 'Cute Golden Tiger Spirit, guardian entity, biting a gold coin, round eyes',
-    'yuelao': 'Elder of Love, holding red strings of fate, wearing robes with moon symbols, kindly old man',
-    '月老': 'Elder of Love, holding red strings of fate, wearing robes with moon symbols, kindly old man',
-    'nezha': 'Young warrior deity, holding fire spear and universe ring, riding wind fire wheels, dynamic',
-    '哪吒': 'Young warrior deity, holding fire spear and universe ring, riding wind fire wheels, dynamic',
+    // ... add more if needed
 };
 
 // --- MOCK FALLBACK IMAGES ---
@@ -76,28 +65,31 @@ async function callDeepSeek(prompt: string): Promise<string> {
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [
-                    { role: "system", content: "You are a wise Taoist Master." },
+                    { role: "system", content: "You are a wise Taoist Master. You speak with mystical authority but kindness. Output in the requested language." },
                     { role: "user", content: prompt }
                 ],
                 stream: false
             })
         });
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || "Blessings (API Limit)";
+        const text = data.choices?.[0]?.message?.content;
+        if (!text) throw new Error("Empty DeepSeek response");
+        return text;
     } catch (e) {
         console.error("DeepSeek Error:", e);
-        return await callGeminiText(prompt); // Fallback
+        // Fallback to Gemini if DeepSeek fails
+        return await callGeminiText(prompt); 
     }
 }
 
 async function callGeminiText(prompt: string) {
-    if (!ai) return "AI Service Unavailable";
+    if (!ai) return "AI Service Unavailable (Key Error)";
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.candidates?.[0]?.content?.parts?.[0]?.text || "Blessings to you.";
+        return response.candidates?.[0]?.content?.parts?.[0]?.text || "Blessings to you (Default).";
     } catch (e) {
         return "The heavens are silent (Network Error).";
     }
@@ -155,9 +147,27 @@ export async function generateTarotReading(cards: string[], language: string): P
  }
 
 export async function generateMicroContent(itemId: string, userInput: string, language: string): Promise<string> {
-    let promptTemplate = MICRO_ITEM_PROMPTS[itemId] || "Generate a blessing.";
-    let prompt = promptTemplate.replace('{{lang}}', language).replace('{{input}}', userInput || 'General');
-    return await callDeepSeek(prompt);
+    try {
+        const langName = language === 'en' ? 'English' : 'Traditional Chinese';
+        let promptTemplate = MICRO_ITEM_PROMPTS[itemId];
+        
+        if (!promptTemplate) {
+            promptTemplate = "Generate a general blessing message. Lang: {{lang}}.";
+        }
+
+        let prompt = promptTemplate.replace('{{lang}}', langName).replace('{{input}}', userInput || 'General');
+        
+        const result = await callDeepSeek(prompt);
+        
+        if (!result || result.includes("Network Error")) {
+            if (itemId.includes('wealth')) return "財源廣進，金銀滿屋！（網絡連線不穩，但財神依然眷顧您）";
+            return "平安喜樂，萬事如意。（大師正在忙線中，請稍後再試）";
+        }
+        
+        return result;
+    } catch (error) {
+        return "福氣滿滿！（連線逾時，請檢查網絡）";
+    }
 }
 
 export async function generateSupportResponse(query: string, language: string): Promise<string> {
@@ -184,23 +194,17 @@ export async function generateBlessingAudio(text: string): Promise<string | null
 }
 
 export function getRandomDeity(): string {
-    const keys = Object.keys(DEITY_SYMBOLS);
-    return keys[Math.floor(Math.random() * keys.length)];
+    return "Mazu"; 
 }
 
 export async function generateBlessingImage(subject: string, isGolden: boolean = false): Promise<string | null> {
     try {
-        let safeSubject = subject;
-        for (const [key, val] of Object.entries(DEITY_SYMBOLS)) {
-            if (subject.toLowerCase().includes(key)) safeSubject = val;
-        }
-        
         let stylePrompt = "Cute 3D chibi blind box toy figure, Pixar style, adorable, big eyes, clean 3d render, soft studio lighting, pastel colors, white background.";
         if (isGolden) {
             stylePrompt = "ULTRA RARE GOLDEN EDITION, Solid Gold Material, shiny metallic texture, glowing divine aura, luxury, sparkling, masterpiece, best quality, 3D render, epic lighting.";
         }
         
-        const prompt = `A ${stylePrompt} of ${safeSubject}. (Negative: photorealistic, human face, religious realism, ugly, deformed)`;
+        const prompt = `A ${stylePrompt} of ${subject}. (Negative: photorealistic, human face, religious realism, ugly, deformed)`;
         
         const config = { imageConfig: { aspectRatio: "1:1" } };
         const response = await callGemini('gemini-2.5-flash-image', { parts: [{ text: prompt }] }, config);
