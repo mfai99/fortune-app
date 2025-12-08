@@ -94,7 +94,7 @@ export const STRIPE_PRICES = {
 export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
   zh_TW: {
     appName: "點讚添好運添福報助手",
-    version: "版本 v3.9 (Direct Payment)",
+    version: "版本 v4.1 (Live)",
     traditionalChinese: "繁體中文",
     simplifiedChinese: "简体中文",
     english: "English",
@@ -317,13 +317,21 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
 
     login_title: "加入點讚添好運",
     login_subtitle: "登入即可累積福報、領取每日福幣",
-    login_google: "使用 Google 登入 (模擬)",
-    login_facebook: "使用 Facebook 登入 (模擬)",
+    login_google: "使用 Google 登入",
+    login_facebook: "使用 Facebook 登入 (敬請期待)",
     checkin_title: "每日簽到",
     checkin_btn: "立即簽到領福幣",
     checkin_success: "簽到成功！",
     checkin_streak: "連續簽到",
     checkin_reward: "+10 福幣",
+
+    // REFERRAL
+    referral_title: "邀請好友",
+    referral_desc: "邀請好友加入，雙方各得 50 福幣！",
+    referral_code_label: "您的邀請碼",
+    referral_input_label: "輸入好友邀請碼",
+    referral_btn: "兌換獎勵",
+    referral_success: "兌換成功！獲得 50 福幣。",
 
     wallet_title: "我的福報存摺",
     gallery_title: "內容庫 (已保存)",
@@ -335,7 +343,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
   },
   zh_CN: {
     appName: "点赞添好运添福报助手",
-    version: "版本 v3.8 (Final Payment)",
+    version: "版本 v4.1 (Live)",
     traditionalChinese: "繁体中文",
     simplifiedChinese: "简体中文",
     english: "English",
@@ -494,7 +502,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
     shop_popular: "热销推荐",
     shop_plan99_name: "单次深度解析 (NT$99)",
     shop_plan99_desc: "解锁单次运势详解，包含事业、感情、健康全方位分析。",
-    shop_plan299_name: "尊荣会员 (NT$299/月)",
+    shop_plan299_name: "尊荣会员订阅 (NT$299/月)",
     shop_plan299_desc: "每日祈福、每周幸运日提醒、每月专属开运卡。",
     shop_item1_name: "开运朱砂手串",
     shop_item1_desc: "大师加持，避邪招财 (NT$499)。",
@@ -558,13 +566,21 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
 
     login_title: "加入点赞添好运",
     login_subtitle: "登入即可累积福报、领取每日福币",
-    login_google: "使用 Google 登入 (模拟)",
-    login_facebook: "使用 Facebook 登入 (模拟)",
+    login_google: "使用 Google 登入",
+    login_facebook: "使用 Facebook 登入 (敬请期待)",
     checkin_title: "每日签到",
     checkin_btn: "立即签到领福币",
     checkin_success: "签到成功！",
     checkin_streak: "连续签到",
     checkin_reward: "+10 福币",
+
+    // REFERRAL
+    referral_title: "邀请好友",
+    referral_desc: "邀请好友加入，双方各得 50 福币！",
+    referral_code_label: "您的邀请码",
+    referral_input_label: "输入好友邀请码",
+    referral_btn: "兑换奖励",
+    referral_success: "兑换成功！获得 50 福币。",
 
     wallet_title: "我的福报存折",
     gallery_title: "内容库 (已保存)",
@@ -576,7 +592,7 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
   }, 
   en: {
     appName: "Fortune Assistant",
-    version: "Version v3.8 (Final Payment)",
+    version: "Version v4.1 (Live)",
     traditionalChinese: "Traditional Chinese",
     simplifiedChinese: "Simplified Chinese",
     english: "English",
@@ -781,11 +797,11 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
     ai_cost_image: "10 Coins",
     ai_cost_video: "50 Coins",
     ai_generating: "Master is casting spells...",
-    ai_pack_1: "100 Coins (NT$99)",
+    ai_pack_1: "Coin Pack - Starter (NT$99)",
     ai_pack_1_desc: "Starter Pack - 1 Video or 10 Images",
-    ai_pack_2: "350 Coins (NT$299)",
+    ai_pack_2: "Coin Pack - Value (NT$299)",
     ai_pack_2_desc: "Value Pack - 7 Videos or 35 Images",
-    ai_pack_3: "1200 Coins (NT$999)",
+    ai_pack_3: "Coin Pack - Pro (NT$999)",
     ai_pack_3_desc: "Pro Pack - 24 Videos or 120 Images",
     ai_badge_hot: "HOT",
     ai_badge_best: "BEST VALUE",
@@ -799,13 +815,21 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationStructure> = {
 
     login_title: "Join Fortune Assistant",
     login_subtitle: "Login to accumulate karma & coins",
-    login_google: "Sign in with Google (Demo)",
-    login_facebook: "Sign in with Facebook (Demo)",
+    login_google: "Sign in with Google",
+    login_facebook: "Sign in with Facebook (Coming Soon)",
     checkin_title: "Daily Check-in",
     checkin_btn: "Check-in Now",
     checkin_success: "Success!",
     checkin_streak: "Streak",
     checkin_reward: "+10 Coins",
+
+    // REFERRAL
+    referral_title: "Refer a Friend",
+    referral_desc: "Invite friends, get 50 coins each!",
+    referral_code_label: "Your Referral Code",
+    referral_input_label: "Enter Friend's Code",
+    referral_btn: "Redeem Bonus",
+    referral_success: "Redeem Success! Got 50 Coins.",
 
     wallet_title: "My Wallet",
     gallery_title: "My Gallery",

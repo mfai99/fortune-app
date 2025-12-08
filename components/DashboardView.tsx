@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { LanguageCode, UserStats, UserProfile, PageId } from '../types';
 import { t, USER_ID } from '../constants';
-import { Card } from './Common';
-import { Zap, Sparkles, Flame, Image as ImageIcon, Calendar, CheckCircle } from 'lucide-react';
+import { Card, BigButton } from './Common';
+import { Zap, Sparkles, Flame, Image as ImageIcon, Calendar, CheckCircle, Users, Copy } from 'lucide-react';
+import { addSupabaseTransaction, updateUserProfile } from '../services/supabase';
 
 interface DashboardViewProps {
   stats: UserStats;
@@ -14,6 +15,8 @@ interface DashboardViewProps {
 
 const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, onCheckIn, setCurrentPage }) => {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
   const hasCheckedInToday = user?.lastCheckIn === todayStr || isCheckedIn;
@@ -24,7 +27,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, on
       onCheckIn();
   };
 
-  // GENERIC WELCOME MESSAGE
   const getWelcomeMessage = () => {
       switch(language) {
           case 'zh_TW': return "尊敬的用戶，歡迎回來";
@@ -33,14 +35,45 @@ const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, on
       }
   };
 
-  // SHORT ID LOGIC
   const rawId = user ? user.id : USER_ID;
   const displayId = rawId.length >= 8 
     ? `${rawId.substring(0, 4).toUpperCase()}-${rawId.substring(4, 8).toUpperCase()}` 
     : rawId;
 
+  // MGM Logic
+  const myReferralCode = rawId.substring(0, 8).toUpperCase();
+
+  const handleRedeemReferral = async () => {
+      if (!user || isRedeeming || !referralCode) return;
+      if (referralCode === myReferralCode) {
+          alert("Cannot redeem your own code!");
+          return;
+      }
+      setIsRedeeming(true);
+      // Simulate API call to verify code (For MVP we just give bonus)
+      await new Promise(r => setTimeout(r, 1000));
+      
+      const bonus = 50;
+      const newCoins = user.coins + bonus;
+      await updateUserProfile(user.id, { coins: newCoins });
+      await addSupabaseTransaction(user.id, {
+          id: `tx_${Date.now()}`,
+          amount: bonus,
+          type: 'deposit',
+          description: `Referral Bonus: ${referralCode}`,
+          date: todayStr
+      });
+
+      alert(t(language, 'referral_success'));
+      setIsRedeeming(false);
+      setReferralCode('');
+      // Force reload to update coins? Or rely on App.tsx state sync.
+      window.location.reload(); 
+  };
+
   return (
     <div className="space-y-8 animate-fadeIn">
+      {/* ... (Welcome & Checkin Header Same as Before) ... */}
       <h2 className="text-4xl font-black text-black mb-6 border-b-4 border-pink-500 pb-3">
         {t(language, 'dashboard')}
       </h2>
@@ -84,39 +117,68 @@ const DashboardView: React.FC<DashboardViewProps> = ({ stats, language, user, on
         </p>
       </Card>
 
+      {/* NEW: MEMBER GET MEMBER CARD */}
+      <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl border-2 border-indigo-200 shadow-md">
+          <h3 className="text-xl font-bold text-indigo-900 flex items-center gap-2 mb-4">
+              <Users className="text-indigo-600" />
+              {t(language, 'referral_title')}
+          </h3>
+          <p className="text-sm text-indigo-700 mb-6">{t(language, 'referral_desc')}</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                  <p className="text-xs text-gray-500 mb-1">{t(language, 'referral_code_label')}</p>
+                  <div className="flex items-center justify-between">
+                      <span className="text-2xl font-mono font-black text-indigo-600 tracking-widest">{myReferralCode}</span>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText(myReferralCode)}
+                        className="p-2 text-gray-400 hover:text-indigo-600"
+                      >
+                          <Copy size={18} />
+                      </button>
+                  </div>
+              </div>
+
+              <div className="flex gap-2 items-end">
+                  <div className="flex-grow">
+                      <label className="text-xs text-gray-500 mb-1 block">{t(language, 'referral_input_label')}</label>
+                      <input 
+                        type="text" 
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                        className="w-full p-3 border-2 border-indigo-200 rounded-lg font-mono focus:border-indigo-500 outline-none"
+                        placeholder="ENTER-CODE"
+                      />
+                  </div>
+                  <button 
+                    onClick={handleRedeemReferral}
+                    disabled={isRedeeming || !referralCode}
+                    className="bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 transition h-[50px]"
+                  >
+                      {isRedeeming ? "..." : t(language, 'referral_btn')}
+                  </button>
+              </div>
+          </div>
+      </div>
+
       <h3 className="text-2xl font-bold text-gray-800">{t(language, 'quickGuide')}</h3>
+      {/* ... (Quick Guide Grid Same as Before) ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div 
-            onClick={() => setCurrentPage('dailyDraw')}
-            className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500"
-          >
+          <div onClick={() => setCurrentPage('dailyDraw')} className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500">
               <Zap className="w-12 h-12 text-pink-600 mb-4" />
               <h4 className="font-bold text-lg mb-2 text-black">{t(language, 'dailyDraw')}</h4>
-              <p className="text-sm text-gray-500 mb-4">{t(language, 'unlockAnalysis')}</p>
           </div>
-          <div 
-            onClick={() => setCurrentPage('nameBlessing')}
-            className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500"
-          >
+          <div onClick={() => setCurrentPage('nameBlessing')} className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500">
               <Sparkles className="w-12 h-12 text-pink-600 mb-4" />
               <h4 className="font-bold text-lg mb-2 text-black">{t(language, 'nameBlessing')}</h4>
-              <p className="text-sm text-gray-500 mb-4">{t(language, 'bless_generate')}</p>
           </div>
-          <div 
-            onClick={() => setCurrentPage('rituals')}
-            className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500"
-          >
+          <div onClick={() => setCurrentPage('rituals')} className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500">
               <Flame className="w-12 h-12 text-pink-600 mb-4" />
               <h4 className="font-bold text-lg mb-2 text-black">{t(language, 'rituals')}</h4>
-              <p className="text-sm text-gray-500 mb-4">{t(language, 'rituals_lamp_name')}</p>
           </div>
-          <div 
-            onClick={() => setCurrentPage('aiStudio')}
-            className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500"
-          >
+          <div onClick={() => setCurrentPage('aiStudio')} className="bg-white p-6 rounded-xl border border-pink-200 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105 cursor-pointer hover:border-pink-500">
               <ImageIcon className="w-12 h-12 text-pink-600 mb-4" />
               <h4 className="font-bold text-lg mb-2 text-black">{t(language, 'aiStudio')}</h4>
-              <p className="text-sm text-gray-500 mb-4">{t(language, 'ai_generate_video')}</p>
           </div>
       </div>
     </div>

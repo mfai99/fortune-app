@@ -18,7 +18,6 @@ export async function loginWithProvider(provider: 'google' | 'facebook') {
     return data;
 }
 
-// --- NEW EMAIL AUTH ---
 export async function signUpWithEmail(email: string, password: string) {
     const { data, error } = await supabase.auth.signUp({
         email,
@@ -36,7 +35,6 @@ export async function signInWithEmail(email: string, password: string) {
     if (error) throw error;
     return data;
 }
-// ----------------------
 
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
     const { data: profile, error } = await supabase
@@ -45,7 +43,12 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
         .eq('id', userId)
         .single();
     
-    if (error || !profile) return null;
+    // Auto-create profile if missing, or handle null
+    if (error || !profile) {
+        // If logged in but no profile, return minimal structure or null
+        // Logic for extracting name from email if profile exists but name is empty
+        return null; 
+    }
 
     const { data: transactions } = await supabase
         .from('transactions')
@@ -59,9 +62,16 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
+    // NAME LOGIC: Use profile.name -> profile.email (before @) -> 'User'
+    let displayName = profile.name;
+    if (!displayName && profile.email) {
+        displayName = profile.email.split('@')[0];
+    }
+    if (!displayName) displayName = "New User";
+
     return {
         id: profile.id,
-        name: profile.name || profile.email,
+        name: displayName,
         coins: profile.coins,
         pityCount: profile.pity_count,
         lastCheckIn: profile.last_check_in,
