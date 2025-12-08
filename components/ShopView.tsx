@@ -25,6 +25,15 @@ const ShopView: React.FC<Props> = ({ language, user, addTransaction }) => {
     { name: t(language, 'shop_plan299_name'), desc: t(language, 'shop_plan299_desc'), price: 299, icon: Crown, color: 'bg-gradient-to-r from-pink-600 to-purple-800', popular: true, link: STRIPE_PRICES.shop_plan299 },
   ];
 
+  // Physical/High Value Items
+  const physicalItems = [
+      { name: t(language, 'shop_item1_name'), desc: t(language, 'shop_item1_desc'), price: 499, icon: Sparkles, color: 'bg-red-800', link: STRIPE_PRICES.shop_item1 },
+      { name: t(language, 'shop_item2_name'), desc: t(language, 'shop_item2_desc'), price: 399, icon: Coins, color: 'bg-yellow-700', link: STRIPE_PRICES.shop_item2 },
+      { name: t(language, 'shop_item3_name'), desc: t(language, 'shop_item3_desc'), price: 299, icon: Shield, color: 'bg-red-600', link: STRIPE_PRICES.shop_item3 },
+      { name: t(language, 'shop_video_name'), desc: t(language, 'shop_video_desc'), price: 199, icon: Video, color: 'bg-purple-700', link: STRIPE_PRICES.shop_video },
+      { name: t(language, 'shop_wallpaper_name'), desc: t(language, 'shop_wallpaper_desc'), price: 50, icon: ImageIcon, color: 'bg-blue-500', link: STRIPE_PRICES.shop_wallpaper },
+  ];
+
   const handleMicroClick = (item: MicroItem) => {
       setSelectedItem(item);
       setInputValue('');
@@ -50,8 +59,16 @@ const ShopView: React.FC<Props> = ({ language, user, addTransaction }) => {
       addTransaction(item.price, 'spend', `Purchased ${t(language, item.nameKey as any)}`);
 
       await new Promise(resolve => setTimeout(resolve, 2000)); // Delay for animation
-      const content = await generateMicroContent(item.id, input, language);
-      setResultContent(content);
+      
+      try {
+          const content = await generateMicroContent(item.id, input, language);
+          setResultContent(content);
+      } catch (e) {
+          console.error("Micro Gen Failed", e);
+          setResultContent("Generation failed. Please try again. (Coins refunded)");
+          addTransaction(item.price, 'deposit', `Refund: ${t(language, item.nameKey as any)}`);
+      }
+      
       setIsProcessing(false);
   };
 
@@ -123,7 +140,7 @@ const ShopView: React.FC<Props> = ({ language, user, addTransaction }) => {
       </div>
 
       {/* Membership Plans (Cash) */}
-      <h3 className="text-2xl font-bold text-gray-800">會員方案 (Cash)</h3>
+      <h3 className="text-2xl font-bold text-gray-800 mt-8">會員方案 (Cash)</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {plans.map((plan, i) => {
             const Icon = plan.icon;
@@ -150,6 +167,30 @@ const ShopView: React.FC<Props> = ({ language, user, addTransaction }) => {
                 </div>
             )
         })}
+      </div>
+
+      {/* Physical / High Value Items (Cash) */}
+      <h3 className="text-2xl font-bold text-gray-800 mt-8">開運好物 (Cash)</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {physicalItems.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                  <div key={i} className={`p-6 rounded-xl shadow-lg text-white ${item.color} border-4 border-white/20`}>
+                      <div className="flex justify-between items-start mb-4">
+                          <Icon size={32} className="opacity-80" />
+                          <span className="bg-black/30 px-3 py-1 rounded-full text-sm font-bold">NT$ {item.price}</span>
+                      </div>
+                      <h4 className="text-xl font-bold mb-2">{item.name}</h4>
+                      <p className="text-sm opacity-80 mb-6 min-h-[40px]">{item.desc}</p>
+                      <button 
+                          onClick={() => handleCashPurchase(item.link)}
+                          className="w-full py-2 bg-white text-black font-bold rounded-lg hover:bg-gray-100 transition"
+                      >
+                          {t(language, 'shop_add')}
+                      </button>
+                  </div>
+              )
+          })}
       </div>
       
       <PaymentLogos />

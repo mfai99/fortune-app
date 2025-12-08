@@ -22,16 +22,12 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
   const [showSuccess, setShowSuccess] = useState<string | null>(null);
   const [showApology, setShowApology] = useState(false);
   
-  // Golden Edition State
   const [isGoldenResult, setIsGoldenResult] = useState(false);
 
   const credits = user?.coins || 0;
   const cost = 10; 
 
-  // DEBUG: Visualize Pity
-  const currentPity = user?.pityCount || 0;
-  const probabilities = [0.05, 0.15, 0.25, 0.35, 1.0];
-  const nextChance = probabilities[Math.min(currentPity, 4)] * 100;
+  const isGuest = user?.id.startsWith('Guest_');
 
   const handleBlindBox = () => {
       const key = getRandomDeity();
@@ -39,6 +35,12 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
   };
 
   const handleGenerate = async () => {
+    // GUEST RESTRICTION: Limit to 1 trial if not signed up
+    if (isGuest && user && user.transactions.length > 2) {
+        alert("Guest trial limit reached! Please Sign Up to continue generating divine images.");
+        return;
+    }
+
     if (!subject.trim()) return;
     if (credits < cost) {
         alert("Insufficient Credits! Please Top Up.");
@@ -54,6 +56,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
     // --- GACHA LOGIC ---
     let isGolden = false;
     const pity = user?.pityCount || 0;
+    const probabilities = [0.05, 0.15, 0.25, 0.35, 1.0];
     const chance = probabilities[Math.min(pity, 4)];
     const roll = Math.random();
     
@@ -92,6 +95,12 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
   };
 
   const buyCredits = (amount: number, index: number) => {
+      // GUEST RESTRICTION: No Payments
+      if (isGuest) {
+          alert("Guest accounts cannot purchase coins. Please Sign Up to protect your wallet.");
+          return;
+      }
+
       const links = [
           "https://buy.stripe.com/7sYfZjd2Z4lO3b487R9ws07", 
           "https://buy.stripe.com/eVq28tgfb3hKcLE3RB9ws08", 
@@ -105,9 +114,12 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
       }
   };
 
+  // ... (Render Logic same as before, just ensuring buyCredits uses the restricted version) ...
+  // Returning the full render block to be safe:
+
   return (
     <div className="space-y-8 animate-fadeIn relative">
-      {/* Modals */}
+      {/* ... Modals (Same) ... */}
       {showSuccess && (
           <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-black/90 text-white px-8 py-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleIn border-4 border-green-500">
               <CheckCircle className="w-16 h-16 text-green-400 mb-4" />
@@ -137,6 +149,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
         {t(language, 'ai_studio_title')}
       </h2>
 
+      {/* Credit Balance */}
       <div className="bg-gradient-to-r from-black via-gray-900 to-pink-900 rounded-xl p-6 text-white flex justify-between items-center shadow-xl border-2 border-pink-500">
           <div>
               <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-1">{t(language, 'ai_credits_balance')}</p>
@@ -144,19 +157,18 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
                   <Coins className="text-pink-400 fill-pink-400" size={32} />
                   <span className="text-4xl font-black">{credits}</span>
               </div>
-               
-               {/* PITY COUNTER VISUAL */}
+               {/* Luck Meter */}
               <div className="mt-4 w-full max-w-[200px] bg-black/50 p-2 rounded-lg border border-gray-700">
                   <div className="flex justify-between text-xs text-gray-300 mb-1">
                       <span>Golden Chance:</span>
-                      <span className={nextChance >= 100 ? "text-yellow-400 font-bold animate-pulse" : "text-white"}>
-                          {nextChance.toFixed(0)}%
+                      <span className="text-white">
+                          {(user?.pityCount || 0) >= 4 ? '100%' : 'Normal'}
                       </span>
                   </div>
                   <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-gradient-to-r from-yellow-600 to-yellow-300 transition-all duration-500"
-                        style={{ width: `${(currentPity / 5) * 100}%` }} 
+                        style={{ width: `${Math.min((user?.pityCount || 0) * 25, 100)}%` }} 
                       ></div>
                   </div>
               </div>
@@ -166,6 +178,7 @@ const AiStudioView: React.FC<Props> = ({ language, user, addTransaction, addToGa
           </button>
       </div>
       
+      {/* Input Card */}
       <Card title={t(language, 'ai_studio_desc')} className="bg-gray-50 border-gray-300">
         <div className="space-y-6">
             <div className="p-4 rounded-xl border-2 bg-pink-100 border-pink-600 text-pink-900 shadow-md flex items-center justify-center gap-2">
